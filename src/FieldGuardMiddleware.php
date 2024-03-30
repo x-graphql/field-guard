@@ -17,9 +17,9 @@ final class FieldGuardMiddleware implements MiddlewareInterface
     private \WeakMap $remembered;
 
     /**
-     * @param array<string, array<string, RuleInterface>> $permissions
+     * @param array<string, array<string, RuleInterface|bool>> $permissions
      */
-    public function __construct(private readonly array $permissions)
+    public function __construct(private readonly array $permissions, private readonly bool $defaultDeny = false)
     {
         $this->remembered = new \WeakMap();
     }
@@ -29,29 +29,40 @@ final class FieldGuardMiddleware implements MiddlewareInterface
      */
     public function resolve(mixed $value, array $arguments, mixed $context, ResolveInfo $info, callable $next): mixed
     {
-        $parentTypename = $info->parentType->name();
-        $fieldName = $info->fieldName;
-        $rule = $this->permissions[$parentTypename][$fieldName] ?? null;
+        $object = $info->parentType->name();
+        $field = $info->fieldName;
+        $rule = $this->permissions[$object][$field] ?? null;
 
-        if (null !== $rule) {
+        if (null === $rule) {
+            $canAccess = !$this->defaultDeny;
+        } else {
             $operationRemembered = $this->remembered[$info->operation] ??= new \WeakMap();
-            $parentRemembered = $operationRemembered[$info->parentType] ??= [];
+            $objectRemembered = $operationRemembered[$info->parentType] ??= [];
 
-            if (isset($parentRemembered[$fieldName])) {
-                $canAccess = $parentRemembered[$fieldName];
+            if (isset($objectRemembered[$field])) {
+                $canAccess = $objectRemembered[$field];
             } else {
-                $canAccess = $rule->allows($value, $arguments, $context, $info);
+                $canAccess = $this->canAccess($rule, $value, $arguments, $context, $info);
 
                 if ($rule->shouldRemember($value, $arguments, $context, $info)) {
-                    $parentRemembered[$fieldName] = $canAccess;
+                    $objectRemembered[$field] = $canAccess;
                 }
-            }
-
-            if (false === $canAccess) {
-                throw new Error('You not have permitted to access this field');
             }
         }
 
+        if (false === $canAccess) {
+            throw new Error('You not have permitted to access this field');
+        }
+
         return $next($value, $arguments, $context, $info);
+    }
+
+    private function canAccess(RuleInterface|bool $rule, mixed $value, array $arguments, mixed $context, ResolveInfo $info): bool
+    {
+        if ($rule instanceof RuleInterface) {
+            return $rule->allows($value, $arguments, $context, $info);
+        }
+
+        return $rule;
     }
 }
