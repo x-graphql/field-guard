@@ -173,11 +173,11 @@ GQL
                 'fields' => [
                     'dummyString' => [
                         'type' => Type::string(),
-                        'resolve' => fn() => 'Dummy',
+                        'resolve' => fn () => 'Dummy',
                     ],
                     'dummyObject' => [
                         'type' => $dummyObject,
-                        'resolve' => fn() => [
+                        'resolve' => fn () => [
                             'dummyObjectString' => 'Dummy Object String',
                             'dummyObject' => [
                                 'dummyObjectString' => 'Dummy Object String Inner',
