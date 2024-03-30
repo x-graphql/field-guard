@@ -37,14 +37,14 @@ final class FieldGuardMiddleware implements MiddlewareInterface
             $canAccess = !$this->defaultDeny;
         } else {
             $operationRemembered = $this->remembered[$info->operation] ??= new \WeakMap();
-            $objectRemembered = $operationRemembered[$info->parentType] ??= [];
+            $objectRemembered = $operationRemembered[$info->parentType] ??= new \ArrayObject();
 
             if (isset($objectRemembered[$field])) {
                 $canAccess = $objectRemembered[$field];
             } else {
-                $canAccess = $this->canAccess($rule, $value, $arguments, $context, $info);
+                $canAccess = $this->allows($rule, $value, $arguments, $context, $info);
 
-                if ($rule->shouldRemember($value, $arguments, $context, $info)) {
+                if ($this->shouldRemember($rule, $value, $arguments, $context, $info)) {
                     $objectRemembered[$field] = $canAccess;
                 }
             }
@@ -57,12 +57,21 @@ final class FieldGuardMiddleware implements MiddlewareInterface
         return $next($value, $arguments, $context, $info);
     }
 
-    private function canAccess(RuleInterface|bool $rule, mixed $value, array $arguments, mixed $context, ResolveInfo $info): bool
+    private function allows(RuleInterface|bool $rule, mixed $value, array $arguments, mixed $context, ResolveInfo $info): bool
     {
         if ($rule instanceof RuleInterface) {
             return $rule->allows($value, $arguments, $context, $info);
         }
 
         return $rule;
+    }
+
+    private function shouldRemember(RuleInterface|bool $rule, mixed $value, array $arguments, mixed $context, ResolveInfo $info): bool
+    {
+        if ($rule instanceof RuleInterface) {
+            return $rule->shouldRemember($value, $arguments, $context, $info);
+        }
+
+        return true; /// always remember static boolean rule
     }
 }
