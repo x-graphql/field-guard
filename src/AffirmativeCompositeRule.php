@@ -6,7 +6,7 @@ namespace XGraphQL\FieldGuard;
 
 use GraphQL\Type\Definition\ResolveInfo;
 
-final readonly class ChainRule implements RuleInterface
+final readonly class AffirmativeCompositeRule implements RuleInterface
 {
 
     /**
@@ -22,22 +22,23 @@ final readonly class ChainRule implements RuleInterface
         foreach ($this->rules as $rule) {
             assert($rule instanceof RuleInterface);
 
-            if (!$rule->allows($value, $args, $context, $info)) {
-                return false;
+            if ($rule->allows($value, $args, $context, $info)) {
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 
-    #[\Override] public function shouldRemember(mixed $value, array $args, mixed $context, ResolveInfo $info): bool
+    #[\Override]
+    public function shouldRemember(mixed $value, array $args, mixed $context, ResolveInfo $info): bool
     {
         foreach ($this->rules as $rule) {
-            if (!$rule->shouldRemember($value, $args, $context, $info)) {
-                return false;
+            if ($rule->shouldRemember($value, $args, $context, $info)) {
+                return true;
             }
         }
 
-        return true;
+        return false;
     }
 }
