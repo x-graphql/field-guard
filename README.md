@@ -53,7 +53,7 @@ use XGraphQL\FieldMiddleware\FieldMiddleware;
 use XGraphQL\FieldGuard\FieldGuardMiddleware;
 
 $schema = ...
-$guardMiddleware = new FieldGuardMiddleware($schema, $permissions);
+$guardMiddleware = new FieldGuardMiddleware($permissions);
 
 FieldMiddleware::apply($schema, [$guardMiddleware]);
 ```
