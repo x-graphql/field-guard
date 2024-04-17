@@ -51,7 +51,7 @@ final class FieldGuardMiddleware implements MiddlewareInterface
         }
 
         if (false === $canAccess) {
-            throw new Error('You not have permitted to access this field');
+            throw new AccessDenyError('You not have permitted to access this field');
         }
 
         return $next($value, $arguments, $context, $info);
