@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace XGraphQL\FieldGuard\Test;
 
 use GraphQL\Error\DebugFlag;
-use GraphQL\Error\Error;
 use GraphQL\GraphQL;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;
@@ -13,6 +12,7 @@ use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Schema;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use XGraphQL\FieldGuard\AccessDenyError;
 use XGraphQL\FieldGuard\FieldGuardMiddleware;
 use XGraphQL\FieldGuard\RuleInterface;
 use XGraphQL\FieldMiddleware\FieldMiddleware;
@@ -25,7 +25,7 @@ class FieldGuardMiddlewareTest extends TestCase
         $middleware = new FieldGuardMiddleware([], true);
         FieldMiddleware::apply($schema, [$middleware]);
 
-        $this->expectException(Error::class);
+        $this->expectException(AccessDenyError::class);
         $this->expectExceptionMessage('You not have permitted to access this field');
 
         GraphQL::executeQuery($schema, '{ dummyString }')->toArray(DebugFlag::RETHROW_INTERNAL_EXCEPTIONS);
