@@ -21,7 +21,7 @@
     "require": {
         "php": ">=8.2",
         "webonyx/graphql-php": "^15.9",
-        "x-graphql/field-middleware": "^0.1.0"
+        "x-graphql/field-middleware": "^0.2"
     },
     "config": {
         "sort-packages": true
